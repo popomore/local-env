@@ -7,3 +7,20 @@ services:
     volumes:
       - ./data/redis:/data
       - ./data/redis/log:/var/log/redis
+  minio:
+    image: minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./data/minio:/data
+  mysql:
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+    volumes:
+      - ./mysql:/etc/mysql/conf.d
+      - ./data/mysql:/var/lib/mysql
