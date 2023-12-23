@@ -8,6 +8,7 @@ services:
     volumes:
       - ./data/redis:/data
       - ./data/redis/log:/var/log/redis
+    command: --requirepass ${REDIS_PASSWORD}
 
   minio:
     image: minio:latest
@@ -25,7 +26,6 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./mysql:/etc/mysql/conf.d
       - ./data/mysql:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
