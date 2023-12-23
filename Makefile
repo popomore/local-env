@@ -1,8 +1,12 @@
-build:
-	docker build -t redis:latest -f ./redis/Dockerfile ./redis
-	docker build -t minio:latest -f ./minio/Dockerfile ./minio
-	docker build -t mysql:latest -f ./mysql/Dockerfile ./mysql
-	docker build -t chroma:latest -f ./chroma/Dockerfile ./chroma
+DOCKERFILE_DIRS := $(shell find . -name Dockerfile -exec dirname {} \;)
+BUILD_TARGETS := $(foreach dir,$(DOCKERFILE_DIRS),build-$(notdir $(dir)))
+
+$(BUILD_TARGETS): build-%:
+	@echo "Build $*"
+	@docker build -t $*:latest -f ./$*/Dockerfile ./$*
+	@echo ""
+
+build: $(BUILD_TARGETS)
 
 deploy: build
 	docker-compose up -d
