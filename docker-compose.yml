@@ -38,3 +38,10 @@ services:
       - ./data/chroma:/chroma/chroma/
     ports:
       - 10001:8000
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./data/nginx/log:/var/log/nginx
+    ports:
+      - 7001:80
