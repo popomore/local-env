@@ -1,0 +1,7 @@
+model_list:
+  - model_name: azure-gpt-4
+    litellm_params:
+      model: os.environ/LITELLM_AZURE_DEPLOYMENT
+      api_base: os.environ/LITELLM_AZURE_API_BASE
+      api_key: os.environ/LITELLM_AZURE_API_KEY
+      api_version: "2023-05-15"

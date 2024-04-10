@@ -1,6 +1,5 @@
-version: '3'
+version: "3"
 services:
-
   redis:
     image: redis:latest
     ports:
@@ -41,7 +40,26 @@ services:
 
   nginx:
     image: nginx:latest
+    network_mode: host
     volumes:
       - ./data/nginx/log:/var/log/nginx
+
+  litellm:
+    build:
+      context: .
+      args:
+        target: runtime
+    image: ghcr.io/berriai/litellm:main-latest
     ports:
-      - 7001:80
+      - "4000:4000"
+    volumes:
+      - ./litellm/conf/config.yaml:/app/config.yaml
+    command:
+      ["--config", "/app/config.yaml", "--port", "4000", "--num_workers", "1"]
+    environment:
+      LITELLM_AZURE_API_BASE: "${LITELLM_AZURE_API_BASE}"
+      LITELLM_AZURE_API_KEY: "${LITELLM_AZURE_API_KEY}"
+      LITELLM_AZURE_DEPLOYMENT: "${LITELLM_AZURE_DEPLOYMENT}"
+      LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY}"
+      UI_USERNAME: "${LITELLM_UI_USERNAME}"
+      UI_PASSWORD: "${LITELLM_UI_PASSWORD}"
