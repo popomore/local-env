@@ -56,3 +56,14 @@ Exposed ports
 Exposed port
 
 - 10001
+
+### postgre
+
+Set environment variables in `.env`
+
+- POSTGRES_USER: Set postgre user
+- POSTGRES_PASSWORD: Set postgre password
+
+Exposed ports
+
+- 5432

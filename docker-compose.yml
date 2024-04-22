@@ -63,3 +63,15 @@ services:
       LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY}"
       UI_USERNAME: "${LITELLM_UI_USERNAME}"
       UI_PASSWORD: "${LITELLM_UI_PASSWORD}"
+
+  postgre:
+    image: postgre:latest
+    shm_size: 128mb
+    volumes:
+      - ./data/postgre/data:/var/lib/postgresql/data/pgdata
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
