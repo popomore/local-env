@@ -1,77 +1,96 @@
 version: "3"
 services:
-  redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"
-    volumes:
-      - ./data/redis:/data
-      - ./data/redis/log:/var/log/redis
-    command: --requirepass ${REDIS_PASSWORD}
+    redis:
+        image: redis:latest
+        ports:
+            - "6379:6379"
+        volumes:
+            - ./data/redis:/data
+            - ./data/redis/log:/var/log/redis
+        command: --requirepass ${REDIS_PASSWORD}
 
-  minio:
-    image: minio:latest
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - ./data/minio:/data
-    environment:
-      MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
-      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+    minio:
+        image: minio:latest
+        ports:
+            - "9000:9000"
+            - "9001:9001"
+        volumes:
+            - ./data/minio:/data
+        environment:
+            MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
+            MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
 
-  mysql:
-    image: mysql:latest
-    ports:
-      - "3306:3306"
-    volumes:
-      - ./data/mysql:/var/lib/mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+    mysql:
+        image: mysql:latest
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./data/mysql:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
 
-  chroma:
-    image: chroma:latest
-    environment:
-      - IS_PERSISTENT=TRUE
-    volumes:
-      - ./data/chroma:/chroma/chroma/
-    ports:
-      - 10001:8000
+    chroma:
+        image: chroma:latest
+        environment:
+            - IS_PERSISTENT=TRUE
+        volumes:
+            - ./data/chroma:/chroma/chroma/
+        ports:
+            - 10001:8000
 
-  nginx:
-    image: nginx:latest
-    network_mode: host
-    volumes:
-      - ./data/nginx/log:/var/log/nginx
+    nginx:
+        image: nginx:latest
+        network_mode: host
+        volumes:
+            - ./data/nginx/log:/var/log/nginx
 
-  litellm:
-    build:
-      context: .
-      args:
-        target: runtime
-    image: ghcr.io/berriai/litellm:main-latest
-    ports:
-      - "4000:4000"
-    volumes:
-      - ./litellm/conf/config.yaml:/app/config.yaml
-    command:
-      ["--config", "/app/config.yaml", "--port", "4000", "--num_workers", "1"]
-    environment:
-      LITELLM_AZURE_API_BASE: "${LITELLM_AZURE_API_BASE}"
-      LITELLM_AZURE_API_KEY: "${LITELLM_AZURE_API_KEY}"
-      LITELLM_AZURE_DEPLOYMENT: "${LITELLM_AZURE_DEPLOYMENT}"
-      LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY}"
-      UI_USERNAME: "${LITELLM_UI_USERNAME}"
-      UI_PASSWORD: "${LITELLM_UI_PASSWORD}"
+    litellm:
+        build:
+            context: .
+            args:
+                target: runtime
+        image: ghcr.io/berriai/litellm:main-latest
+        ports:
+            - "4000:4000"
+        volumes:
+            - ./litellm/conf/config.yaml:/app/config.yaml
+        command:
+            [
+                "--config",
+                "/app/config.yaml",
+                "--port",
+                "4000",
+                "--num_workers",
+                "1",
+            ]
+        environment:
+            LITELLM_AZURE_API_BASE: "${LITELLM_AZURE_API_BASE}"
+            LITELLM_AZURE_API_KEY: "${LITELLM_AZURE_API_KEY}"
+            LITELLM_AZURE_DEPLOYMENT: "${LITELLM_AZURE_DEPLOYMENT}"
+            LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY}"
+            UI_USERNAME: "${LITELLM_UI_USERNAME}"
+            UI_PASSWORD: "${LITELLM_UI_PASSWORD}"
 
-  postgre:
-    image: postgre:latest
-    shm_size: 128mb
-    volumes:
-      - ./data/postgre/data:/var/lib/postgresql/data/pgdata
-    ports:
-      - 5432:5432
-    environment:
-      POSTGRES_USER: "${POSTGRES_USER}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-      PGDATA: "/var/lib/postgresql/data/pgdata"
+    postgre:
+        image: postgre:latest
+        shm_size: 128mb
+        volumes:
+            - ./data/postgre/data:/var/lib/postgresql/data/pgdata
+        ports:
+            - 5432:5432
+        environment:
+            POSTGRES_USER: "${POSTGRES_USER}"
+            POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+            PGDATA: "/var/lib/postgresql/data/pgdata"
+
+    static:
+        restart: no
+        image: joseluisq/static-web-server:2-alpine
+        ports:
+            - 80:80
+        environment:
+            - SERVER_ROOT=/var/public
+            - SERVER_CONFIG_FILE=/etc/config.toml
+        volumes:
+            - ./static/public:/var/public
+            - ./conf/config.toml:/etc/config.toml

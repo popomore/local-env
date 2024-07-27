@@ -3,7 +3,7 @@ BUILD_TARGETS := $(foreach dir,$(DOCKERFILE_DIRS),build-$(notdir $(dir)))
 
 $(BUILD_TARGETS): build-%:
 	@echo "Build $*"
-	@docker build -t $*:latest -f ./$*/Dockerfile ./$*
+	@docker --context desktop-linux build -t $*:latest -f ./$*/Dockerfile ./$*
 	@echo ""
 
 build: $(BUILD_TARGETS)
