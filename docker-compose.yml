@@ -104,3 +104,15 @@ services:
         volumes:
             - ./sftp/conf/users.conf:/etc/sftp/users.conf:ro
         privileged: true
+
+    aliyundrive:
+        image: messense/aliyundrive-webdav
+        restart: no
+        ports:
+        - '10002:8080'
+        volumes:
+            - ./aliyundrive/conf:/etc/aliyundrive-webdav/
+        environment:
+            WEBDAV_AUTH_USER: "${ALIYUNDRIVER_WEBDAV_AUTH_USER}"
+            WEBDAV_AUTH_PASSWORD: "${ALIYUNDRIVER_WEBDAV_AUTH_PASSWORD}"
+            REFRESH_TOKEN: "${ALIYUNDRIVER_REFRESH_TOKEN}"
