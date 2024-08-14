@@ -1,6 +1,7 @@
 data/**/*
-\.env
-nginx/conf/sites-enabled
-nginx/conf/sites-available
 
-static/public
+\.env
+
+conf/nginx/sites-enabled
+conf/nginx/sites-available
+conf/static/public
