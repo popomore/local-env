@@ -1,6 +1,6 @@
 services:
     redis:
-        image: redis:latest
+        image: redis:6
         ports:
             - "6379:6379"
         volumes:
@@ -10,7 +10,7 @@ services:
         command: --requirepass ${REDIS_PASSWORD}
 
     minio:
-        image: minio:latest
+        image: minio/minio:latest
         ports:
             - "9000:9000"
             - "9001:9001"
@@ -19,9 +19,10 @@ services:
         environment:
             MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
             MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+        command: server --console-address ":9001" /data
 
     mysql:
-        image: mysql:latest
+        image: mysql:8
         ports:
             - "3306:3306"
         volumes:
@@ -115,6 +116,31 @@ services:
         volumes:
             - ./data/aliyundrive:/etc/aliyundrive-webdav/
         environment:
+            DRIVE_TYPE: "resource"
             WEBDAV_AUTH_USER: "${ALIYUNDRIVER_WEBDAV_AUTH_USER}"
             WEBDAV_AUTH_PASSWORD: "${ALIYUNDRIVER_WEBDAV_AUTH_PASSWORD}"
             REFRESH_TOKEN: "${ALIYUNDRIVER_REFRESH_TOKEN}"
+
+    nacos:
+        image: nacos/nacos-server:v2.4.0.1
+        restart: always
+        environment:
+            PREFER_HOST_MODE: hostname
+            MODE: standalone
+            SPRING_DATASOURCE_PLATFORM: mysql
+            MYSQL_SERVICE_HOST: localhost
+            MYSQL_SERVICE_DB_NAME: nacos
+            MYSQL_SERVICE_PORT: 3306
+            MYSQL_SERVICE_USER: root
+            MYSQL_SERVICE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_SERVICE_DB_PARAM: characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+            NACOS_AUTH_IDENTITY_KEY: nacos
+            NACOS_AUTH_IDENTITY_VALUE: 123456
+            NACOS_AUTH_TOKEN: SecretKey012345678901234567890123456789012345678901234567890123456789
+        volumes:
+            - ./data/nacos/logs:/home/nacos/logs
+        ports:
+            - "8848:8848"
+            - "9848:9848"
+        depends_on:
+            - mysql
