@@ -176,3 +176,10 @@ services:
         command: worker
         depends_on:
         - n8n
+
+    crawl4ai: # Or your chosen service
+        image: unclecode/crawl4ai:latest
+        ports:
+        - 11235:11235
+        volumes:
+        - ./conf/crawl4ai/config.yml:/app/config.yml
