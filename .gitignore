@@ -5,3 +5,5 @@ data/**/*
 conf/nginx/sites-enabled
 conf/nginx/sites-available
 conf/static/public
+
+service/*/user/*

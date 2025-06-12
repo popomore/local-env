@@ -1,0 +1,90 @@
+services:
+    # 数据库服务 - 默认启动
+    redis:
+        build:
+            context: ./service/redis
+        ports:
+            - "6379:6379"
+        volumes:
+            - ./data/redis:/data
+            - ./data/redis/log:/var/log/redis
+        command: --requirepass ${REDIS_PASSWORD}
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        profiles:
+            - build
+            - default
+
+    mysql:
+        build:
+            context: ./service/mysql
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./data/mysql:/var/lib/mysql
+            - ./conf/mysql:/etc/mysql/conf.d
+        environment:
+            MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+        profiles:
+            - default
+            - build
+
+    postgre:
+        build:
+            context: ./service/postgre
+        shm_size: 128mb
+        volumes:
+            - ./data/postgre/data:/var/lib/postgresql/data/pgdata
+        ports:
+            - 5432:5432
+        environment:
+            POSTGRES_USER: "${POSTGRES_USER}"
+            POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+            PGDATA: "/var/lib/postgresql/data/pgdata"
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        profiles:
+            - build
+
+    minio:
+        build:
+            context: ./service/minio
+        ports:
+            - "9000:9000"
+            - "9001:9001"
+        volumes:
+            - ./data/minio:/data
+        environment:
+            MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
+            MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+        profiles:
+            - build
+
+    chroma:
+        build:
+            context: ./service/chroma
+        environment:
+            - IS_PERSISTENT=TRUE
+        volumes:
+            - ./data/chroma:/chroma/chroma/
+        ports:
+            - 10001:8000
+        profiles:
+            - build
+
+    # 反向代理服务 - 需要指定 profile 才启动
+    nginx:
+        build:
+            context: ./service/nginx
+        network_mode: host
+        volumes:
+            - ./data/nginx/log:/var/log/nginx
+        profiles:
+            - default
+            - build

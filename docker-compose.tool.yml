@@ -1,0 +1,54 @@
+services:
+    # 静态文件服务器
+    static:
+        restart: no
+        build:
+            context: ./service/static
+        ports:
+            - 80:80
+        environment:
+            - SERVER_ROOT=/var/public
+            - SERVER_CONFIG_FILE=/etc/config.toml
+        profiles:
+            - tool
+            - build
+
+    # SFTP 文件传输服务
+    sftp:
+        restart: no
+        platform: linux/x86_64
+        build:
+            context: ./service/sftp
+        ports:
+            - "2022:22"
+        privileged: true
+        profiles:
+            - tool
+            - build
+
+    # 阿里云盘 WebDAV 服务
+    aliyundrive:
+        build:
+            context: ./service/aliyundrive
+        restart: no
+        ports:
+        - '10002:8080'
+        volumes:
+            - ./data/aliyundrive:/etc/aliyundrive-webdav/
+        environment:
+            WEBDAV_AUTH_USER: "${ALIYUNDRIVER_WEBDAV_AUTH_USER}"
+            WEBDAV_AUTH_PASSWORD: "${ALIYUNDRIVER_WEBDAV_AUTH_PASSWORD}"
+            REFRESH_TOKEN: "${ALIYUNDRIVER_REFRESH_TOKEN}"
+        profiles:
+            - tool
+            - build
+
+    # MCP 协议检查器
+    mcp-inspect:
+        build:
+            context: ./service/mcp-inspector
+        network_mode: host
+        profiles:
+            - default
+            - tool
+            - build
