@@ -1,0 +1,77 @@
+# Application Configuration
+app:
+  title: "Crawl4AI API"
+  version: "1.0.0" # Consider setting this to match library version, e.g., "0.5.1"
+  host: "0.0.0.0"
+  port: 11235 # NOTE: This port is used ONLY when running server.py directly. Gunicorn overrides this (see supervisord.conf).
+  reload: False # Default set to False - suitable for production
+  timeout_keep_alive: 300
+
+# Redis Configuration (Used by internal Redis server managed by supervisord)
+redis:
+  host: "localhost"
+  port: 6379
+  db: 0
+  password: ""
+  # ... other redis options ...
+
+# Rate Limiting Configuration
+rate_limiting:
+  enabled: false
+  default_limit: "1000/minute"
+  trusted_proxies: []
+  storage_uri: "memory://"  # Use "redis://localhost:6379" if you need persistent/shared limits
+
+# Security Configuration
+security:
+  enabled: true # Master toggle for security features
+  jwt_enabled: true # Enable JWT authentication (requires security.enabled=true)
+  jwt_secret: f144efb6-2bff-4d83-9f34-ab4059e7297c
+  https_redirect: false # Force HTTPS (requires security.enabled=true)
+  trusted_hosts: ["*"] # Allowed hosts (use specific domains in production)
+  headers: # Security headers (applied if security.enabled=true)
+    x_content_type_options: "nosniff"
+    x_frame_options: "DENY"
+    content_security_policy: "default-src 'self'"
+    strict_transport_security: "max-age=63072000; includeSubDomains"
+
+# Crawler Configuration
+crawler:
+  base_config:
+    simulate_user: true
+  memory_threshold_percent: 95.0
+  rate_limiter:
+    enabled: false
+    base_delay: [1.0, 2.0]
+  timeouts:
+    stream_init: 30.0  # Timeout for stream initialization
+    batch_process: 300.0  # Timeout for batch processing
+  pool:
+    max_pages: 40                          # ← GLOBAL_SEM permits
+    idle_ttl_sec: 1800                     # ← 30 min janitor cutoff
+  browser:
+    kwargs:
+      headless: true
+      text_mode: true
+    extra_args:
+      # - "--single-process"
+      - "--no-sandbox"
+      - "--disable-dev-shm-usage"
+      - "--disable-gpu"
+      - "--disable-software-rasterizer"
+      - "--disable-web-security"
+      - "--allow-insecure-localhost"
+      - "--ignore-certificate-errors"
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Observability Configuration
+observability:
+  prometheus:
+    enabled: True
+    endpoint: "/metrics"
+  health_check:
+    endpoint: "/health"

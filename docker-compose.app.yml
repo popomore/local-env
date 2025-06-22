@@ -1,0 +1,94 @@
+volumes:
+    n8n_storage:
+
+x-shared: &n8n
+    restart: always
+    build:
+        context: ./service/n8n
+    environment:
+        - DB_TYPE=postgresdb
+        - DB_POSTGRESDB_HOST=postgre
+        - DB_POSTGRESDB_PORT=5432
+        - DB_POSTGRESDB_DATABASE=n8n
+        - DB_POSTGRESDB_USER=${POSTGRES_USER}
+        - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+        - EXECUTIONS_MODE=queue
+        - QUEUE_BULL_REDIS_HOST=redis
+        - QUEUE_BULL_REDIS_PASSWORD=${REDIS_PASSWORD}
+        - QUEUE_HEALTH_CHECK_ACTIVE=true
+        - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+        - N8N_RUNNERS_ENABLED=true
+        - OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true
+    links:
+        - postgre
+        - redis
+    volumes:
+        - ./data/n8n:/home/node/.n8n
+    depends_on:
+        redis:
+            condition: service_healthy
+        postgre:
+            condition: service_healthy
+
+services:
+    # 工作流自动化平台
+    n8n:
+        <<: *n8n
+        ports:
+        - 5678:5678
+        healthcheck:
+            test: ["CMD", "curl", "--fail", "http://localhost:5678/healthz"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 60s
+        profiles:
+            - build
+            - app
+            - n8n
+
+    n8n-worker:
+        <<: *n8n
+        command: worker
+        depends_on:
+        - n8n
+        profiles:
+            - build
+            - app
+            - n8n
+
+    # AI 代理网关
+    litellm:
+        build:
+            context: ./service/litellm
+        ports:
+            - "4000:4000"
+        command:
+            [
+                "--config",
+                "/app/config.yaml",
+                "--port",
+                "4000",
+                "--num_workers",
+                "1",
+            ]
+        environment:
+            LITELLM_AZURE_API_BASE: "${LITELLM_AZURE_API_BASE}"
+            LITELLM_AZURE_API_KEY: "${LITELLM_AZURE_API_KEY}"
+            LITELLM_AZURE_DEPLOYMENT: "${LITELLM_AZURE_DEPLOYMENT}"
+            LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY}"
+            UI_USERNAME: "${LITELLM_UI_USERNAME}"
+            UI_PASSWORD: "${LITELLM_UI_PASSWORD}"
+        profiles:
+            - app
+            - build
+
+    # 网页爬虫服务
+    crawl4ai:
+        build:
+            context: ./service/crawl4ai
+        ports:
+            - 11235:11235
+        profiles:
+            - app
+            - build
